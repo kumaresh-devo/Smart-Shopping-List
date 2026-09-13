@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<!-- KPI Stats Row -->
+<div class="row g-3 mb-4">
+  <!-- Total Shopping Lists -->
+  <div class="col-12 col-sm-6 col-xl-4">
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-icon-green">
+        <i class="bi bi-journal-bookmark-fill"></i>
+      </div>
+      <div>
+        <div class="kpi-label">Shopping Lists</div>
+        <div class="kpi-value">{{ total_lists }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Total Items -->
+  <div class="col-12 col-sm-6 col-xl-4">
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-icon-blue">
+        <i class="bi bi-basket3-fill"></i>
+      </div>
+      <div>
+        <div class="kpi-label">Total Items</div>
+        <div class="kpi-value">{{ total_items }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Items -->
+  <div class="col-12 col-sm-6 col-xl-4">
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-icon-amber">
+        <i class="bi bi-hourglass-split"></i>
+      </div>
+      <div>
+        <div class="kpi-label">Pending Items</div>
+        <div class="kpi-value text-warning">{{ pending_items }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Completed Items -->
+  <div class="col-12 col-sm-6 col-xl-4">
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-icon-green">
+        <i class="bi bi-check2-all"></i>
+      </div>
+      <div>
+        <div class="kpi-label">Completed Items</div>
+        <div class="kpi-value text-success">{{ completed_items }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estimated Expense -->
+  <div class="col-12 col-sm-6 col-xl-4">
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-icon-purple">
+        <i class="bi bi-calculator"></i>
+      </div>
+      <div>
+        <div class="kpi-label">Estimated Expense</div>
+        <div class="kpi-value">₹{{ "%.2f"|format(estimated_expense) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actual Expense -->
+  <div class="col-12 col-sm-6 col-xl-4">
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper kpi-icon-green">
+        <i class="bi bi-cash-coin"></i>
+      </div>
+      <div>
+        <div class="kpi-label">Actual Expense</div>
+        <div class="kpi-value text-success">₹{{ "%.2f"|format(actual_expense) }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Section: Frequently Bought (Inside Dashboard) -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card-custom">
+      <div class="card-header-clean">
+        <div>
+          <h3 class="card-title-clean">
+            <i class="bi bi-arrow-repeat text-success fs-5"></i>
+            <span>Frequently Bought Items</span>
+          </h3>
+          <p class="text-muted small mb-0 mt-1">
+            Calculated from your previous purchase history. Quick-add them to your shopping lists.
+          </p>
+        </div>
+      </div>
+
+      {% if frequently_bought %}
+      <div class="row g-3">
+        {% for item in frequently_bought %}
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="frequent-item-box h-100">
+            <div>
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge-category">
+                  <i class="bi bi-tag-fill"></i>
+                  <span>{{ item.category }}</span>
+                </span>
+                <span class="badge bg-light text-success border border-success-subtle rounded-pill">
+                  {{ item.purchase_count }}x bought
+                </span>
+              </div>
+              <h6 class="fw-bold text-main mb-1">{{ item.item_name }}</h6>
+              <div class="text-muted small mb-3">Avg: ₹{{ "%.2f"|format(item.avg_price) }}</div>
+            </div>
+
+            <button type="button" class="btn btn-sm btn-outline-green w-100 justify-content-center"
+              data-bs-toggle="modal" data-bs-target="#quickAddModal" data-item-name="{{ item.item_name }}"
+              data-category="{{ item.category }}" data-price="{{ item.avg_price }}">
+              <i class="bi bi-plus-circle"></i>
+              <span>Quick Add</span>
+            </button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-4 text-muted">
+        <i class="bi bi-clock-history fs-2 text-light mb-2 d-block"></i>
+        <p class="mb-1 fw-semibold">No purchase history records yet.</p>
+        <p class="small text-muted mb-0">When you complete purchases and log actual prices, your frequently bought items
+          will appear here.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Section: Shopping Lists & Recent Activity -->
+<div class="row g-4">
+  <!-- Active Shopping Lists Overview -->
+  <div class="col-12 col-lg-7">
+    <div class="card-custom h-100">
+      <div class="card-header-clean">
+        <h3 class="card-title-clean">
+          <i class="bi bi-card-checklist text-success fs-5"></i>
+          <span>My Shopping Lists</span>
+        </h3>
+        <a href="{{ url_for('shopping_lists.view_list') }}" class="btn btn-sm btn-outline-green">
+          <span>Manage Lists</span>
+          <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+
+      {% if user_lists %}
+      <div class="d-flex flex-column gap-3">
+        {% for sl in user_lists %}
+        <div class="p-3 border rounded-3 bg-light bg-opacity-50">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="fw-bold text-main fs-6">{{ sl.title }}</div>
+            <a href="{{ url_for('shopping_lists.view_list', list_id=sl.id) }}" class="btn btn-sm btn-outline-success">
+              <span>Open List</span>
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </div>
+          <div class="d-flex flex-wrap gap-3 small text-muted mb-2">
+            <div><i class="bi bi-list-task me-1"></i> {{ sl.total_items_count }} items</div>
+            <div><i class="bi bi-hourglass me-1 text-warning"></i> {{ sl.pending_items_count }} pending</div>
+            <div><i class="bi bi-check-circle me-1 text-success"></i> {{ sl.completed_items_count }} completed</div>
+            <div><i class="bi bi-cash me-1 text-success"></i> Est: ₹{{ "%.2f"|format(sl.estimated_total) }}</div>
+          </div>
+
+          {% set pct = ((sl.completed_items_count / sl.total_items_count) * 100)|int if sl.total_items_count > 0 else 0
+          %}
+          <div class="progress" style="height: 6px;">
+            <div class="progress-bar bg-success" role="progressbar" style="width: {{ pct }}%;" aria-valuenow="{{ pct }}"
+              aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-cart-plus fs-1 text-light mb-2 d-block"></i>
+        <p class="fw-semibold mb-1">No shopping lists created yet.</p>
+        <p class="small text-muted mb-3">Create your first shopping list to start adding items.</p>
+        <a href="{{ url_for('shopping_lists.view_list') }}" class="btn btn-sm btn-green">
+          <i class="bi bi-plus-lg"></i>
+          <span>Create Shopping List</span>
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Recent Purchase Activity -->
+  <div class="col-12 col-lg-5">
+    <div class="card-custom h-100">
+      <div class="card-header-clean">
+        <h3 class="card-title-clean">
+          <i class="bi bi-clock-history text-success fs-5"></i>
+          <span>Recent Purchases</span>
+        </h3>
+        <a href="{{ url_for('history.shopping_history_view') }}" class="btn btn-sm btn-outline-green">
+          <span>View All</span>
+          <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+
+      {% if recent_purchases %}
+      <div class="list-group list-group-flush">
+        {% for rec in recent_purchases %}
+        <div class="list-group-item px-0 py-2 border-bottom d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-semibold text-main small">{{ rec.item_name }}</div>
+            <div class="text-muted" style="font-size: 0.75rem;">
+              <span class="badge-category py-0 px-2" style="font-size: 0.7rem;">{{ rec.category }}</span>
+              <span class="ms-1">{{ rec.purchase_date.strftime('%b %d, %Y') if rec.purchase_date else '' }}</span>
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="fw-bold text-success small">₹{{ "%.2f"|format(rec.total_cost) }}</div>
+            <div class="text-muted" style="font-size: 0.75rem;">Qty: {{ rec.quantity }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-bag-check fs-1 text-light mb-2 d-block"></i>
+        <p class="fw-semibold mb-1">No recent purchases recorded.</p>
+        <p class="small text-muted mb-0">Purchased items with actual prices will appear here.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Quick Add Frequently Bought Item -->
+<div class="modal fade" id="quickAddModal" tabindex="-1" aria-labelledby="quickAddModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-content-custom">
+      <form action="{{ url_for('dashboard.quick_add_frequent') }}" method="POST">
+        <div class="modal-header modal-header-custom">
+          <h5 class="modal-title fw-bold" id="quickAddModalLabel">
+            <i class="bi bi-plus-circle text-success me-1"></i> Quick Add to List
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <input type="hidden" id="modal_category" name="category">
+
+          <div class="mb-3">
+            <label class="form-label-custom">Item Name</label>
+            <input type="text" class="form-control form-control-custom" id="modal_item_name" name="item_name" required
+              readonly>
+          </div>
+
+          <div class="mb-3">
+            <label for="modal_list_id" class="form-label-custom">Select Destination List</label>
+            {% if user_lists %}
+            <select class="form-select form-select-custom" id="modal_list_id" name="list_id" required>
+              {% for sl in user_lists %}
+              <option value="{{ sl.id }}">{{ sl.title }}</option>
+              {% endfor %}
+            </select>
+            {% else %}
+            <div class="alert alert-warning small mb-0">
+              You have no shopping lists. Please create a list first.
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="row g-2">
+            <div class="col-6 mb-3">
+              <label for="modal_quantity" class="form-label-custom">Quantity</label>
+              <input type="number" step="any" min="0.1" class="form-control form-control-custom" id="modal_quantity"
+                name="quantity" value="1" required>
+            </div>
+            <div class="col-6 mb-3">
+              <label for="modal_unit" class="form-label-custom">Unit</label>
+              <select class="form-select form-select-custom" id="modal_unit" name="unit">
+                <option value="pcs" selected>pcs</option>
+                <option value="kg">kg</option>
+                <option value="g">g</option>
+                <option value="l">l</option>
+                <option value="ml">ml</option>
+                <option value="pack">pack</option>
+                <option value="box">box</option>
+                <option value="bottle">bottle</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-2">
+            <label for="modal_price" class="form-label-custom">Estimated Price (₹)</label>
+            <input type="number" step="0.01" min="0" class="form-control form-control-custom" id="modal_price"
+              name="estimated_price" value="0.00">
+          </div>
+        </div>
+        <div class="modal-footer modal-footer-custom">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-green" {% if not user_lists %}disabled{% endif %}>
+            <i class="bi bi-check-lg"></i>
+            <span>Add Item</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

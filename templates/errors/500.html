@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Internal Server Error (500){% endblock %}
+{% block page_title %}Server Error{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+  <div class="col-12 col-md-6 text-center">
+    <div class="card-custom py-5">
+      <div class="brand-icon mx-auto mb-3 bg-danger" style="width: 64px; height: 64px; font-size: 2rem;">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+      </div>
+      <h2 class="fw-bold text-main">500 - Server Error</h2>
+      <p class="text-muted mb-4">Something went wrong while processing your request. Please try again later.</p>
+      <a href="{{ url_for('dashboard.dashboard_view') }}" class="btn btn-green">
+        <i class="bi bi-house-door-fill"></i> Return to Dashboard
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

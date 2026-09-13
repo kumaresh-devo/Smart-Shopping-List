@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}Add New Item{% endblock %}
+{% block page_title %}Add New Item{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="card-custom">
+      <div class="card-header-clean">
+        <div>
+          <h3 class="card-title-clean">
+            <i class="bi bi-plus-circle-fill text-success fs-5"></i>
+            <span>Add Item to Shopping List</span>
+          </h3>
+          <p class="text-muted small mb-0 mt-1">
+            Specify item details and expected price. Actual price is entered upon purchase.
+          </p>
+        </div>
+      </div>
+
+      {% if not user_lists %}
+        <div class="alert alert-warning d-flex align-items-center justify-content-between p-3 mb-4" style="border-radius: var(--radius-md);">
+          <div>
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+            <span>You need at least one Shopping List before adding items.</span>
+          </div>
+          <a href="{{ url_for('shopping_lists.view_list') }}" class="btn btn-sm btn-outline-warning text-dark fw-bold">
+            Create a List First
+          </a>
+        </div>
+      {% endif %}
+
+      <form action="{{ url_for('shopping_items.add_item_page') }}" method="POST" id="addItemForm">
+        <!-- Shopping List Selection -->
+        <div class="mb-3">
+          <label for="list_id" class="form-label-custom">
+            Select Shopping List <span class="text-danger">*</span>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text bg-light"><i class="bi bi-folder text-muted"></i></span>
+            <select class="form-select form-select-custom" id="list_id" name="list_id" required {% if not user_lists %}disabled{% endif %}>
+              <option value="" disabled {% if not selected_list_id %}selected{% endif %}>-- Choose a Shopping List --</option>
+              {% for sl in user_lists %}
+                <option value="{{ sl.id }}" {% if selected_list_id == sl.id %}selected{% endif %}>
+                  {{ sl.title }} ({{ sl.total_items_count }} items)
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <!-- Item Name -->
+        <div class="mb-3">
+          <label for="item_name" class="form-label-custom">
+            Item Name <span class="text-danger">*</span>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text bg-light"><i class="bi bi-basket text-muted"></i></span>
+            <input type="text" class="form-control form-control-custom" id="item_name" name="item_name" value="{{ item_name or '' }}" placeholder="e.g. Fresh Milk, Brown Bread, Basmati Rice" required {% if not user_lists %}disabled{% endif %}>
+          </div>
+        </div>
+
+        <!-- Category -->
+        <div class="mb-3">
+          <label for="category" class="form-label-custom">
+            Category <span class="text-danger">*</span>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text bg-light"><i class="bi bi-tags text-muted"></i></span>
+            <select class="form-select form-select-custom" id="category" name="category" required {% if not user_lists %}disabled{% endif %}>
+              {% for cat in categories %}
+                <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <!-- Quantity & Unit -->
+        <div class="row g-3 mb-3">
+          <div class="col-12 col-sm-6">
+            <label for="quantity" class="form-label-custom">
+              Quantity <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-123 text-muted"></i></span>
+              <input type="number" step="any" min="0.1" class="form-control form-control-custom" id="quantity" name="quantity" value="{{ quantity or 1 }}" required {% if not user_lists %}disabled{% endif %}>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6">
+            <label for="unit" class="form-label-custom">
+              Unit
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-boxes text-muted"></i></span>
+              <select class="form-select form-select-custom" id="unit" name="unit" {% if not user_lists %}disabled{% endif %}>
+                {% for u in units %}
+                  <option value="{{ u }}" {% if unit == u %}selected{% endif %}>{{ u }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estimated Price -->
+        <div class="mb-3">
+          <label for="estimated_price" class="form-label-custom">
+            Estimated Price per Unit (₹)
+          </label>
+          <div class="input-group">
+            <span class="input-group-text bg-light">₹</span>
+            <input type="number" step="0.01" min="0" class="form-control form-control-custom" id="estimated_price" name="estimated_price" value="{{ estimated_price or '0.00' }}" placeholder="0.00" {% if not user_lists %}disabled{% endif %}>
+          </div>
+          <div class="form-text text-muted small">
+            Estimated price is your planned budget. You will log the actual receipt price when purchasing.
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="mb-4">
+          <label for="notes" class="form-label-custom">Notes / Special Instructions (Optional)</label>
+          <textarea class="form-control form-control-custom" id="notes" name="notes" rows="3" placeholder="e.g. Prefer 2L bottle, organic brand if on discount..." {% if not user_lists %}disabled{% endif %}>{{ notes or '' }}</textarea>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex justify-content-end gap-2">
+          <a href="{{ url_for('shopping_lists.view_list') }}" class="btn btn-light px-4">
+            Cancel
+          </a>
+          <button type="submit" class="btn btn-green px-4" {% if not user_lists %}disabled{% endif %}>
+            <i class="bi bi-plus-circle-fill"></i>
+            <span>Add Item</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% if success_item_name %}
+<div class="modal fade" id="itemAddedModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content modal-content-custom">
+      <div class="modal-header modal-header-custom">
+        <h5 class="modal-title fw-bold">Item Added Successfully!</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <p class="mb-0"><strong>{{ success_item_name }}</strong> has been added to <strong>{{ success_list_name }}</strong>.</p>
+      </div>
+      <div class="modal-footer modal-footer-custom">
+        <button type="button" class="btn btn-light" id="addAnotherItemButton">Add Another Item</button>
+        <a href="{{ url_for('shopping_lists.view_list', list_id=success_list_id) }}" class="btn btn-green">View Shopping List</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/add_item.js') }}"></script>
+{% endblock %}
