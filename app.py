@@ -12,7 +12,6 @@ from routes.shopping_items import shopping_items_bp
 from routes.reports import reports_bp
 from routes.history import history_bp
 
-
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -60,19 +59,9 @@ def create_app(config_class=Config):
 
     return app
 
-
-# Vercel needs a top-level Flask application
-app = create_app()
-
-
 if __name__ == '__main__':
+    app = create_app()
     with app.app_context():
         db.create_all()
-
     print("Starting Smart Shopping List on http://127.0.0.1:5000 ...")
-
-    app.run(
-        host='0.0.0.0',
-        port=5000,
-        debug=True
-    )
+    app.run(host='0.0.0.0', port=5000, debug=True)
